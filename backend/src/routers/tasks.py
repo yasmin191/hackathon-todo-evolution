@@ -1,13 +1,25 @@
 """Task API endpoints."""
 
-from fastapi import APIRouter, HTTPException, status
+from datetime import datetime
+
+from fastapi import APIRouter, HTTPException, Query, status
 
 from src.database import SessionDep
 from src.middleware.auth import CurrentUser, verify_user_access
-from src.models.task import TaskCreate, TaskResponse, TaskUpdate
+from src.models.task import Priority, TaskCreate, TaskResponse, TaskUpdate
+from src.services import tag_service
+from src.services.recurring_service import create_next_occurrence
 from src.services.task_service import TaskService
 
 router = APIRouter(prefix="/api/{user_id}/tasks", tags=["tasks"])
+
+
+def _build_task_response(session, task) -> TaskResponse:
+    """Build task response with tags."""
+    tags = tag_service.get_task_tags(session, task.id)
+    response = TaskResponse.model_validate(task)
+    response.tags = [{"id": t.id, "name": t.name, "color": t.color} for t in tags]
+    return response
 
 
 @router.get("", response_model=list[TaskResponse])
@@ -15,12 +27,30 @@ def list_tasks(
     user_id: str,
     session: SessionDep,
     current_user: CurrentUser,
+    status_filter: str | None = Query(None, alias="status"),
+    priority: Priority | None = None,
+    tag: str | None = None,
+    search: str | None = None,
+    due_before: datetime | None = None,
+    overdue: bool = False,
+    sort: str = "created_at",
+    order: str = "desc",
 ) -> list[TaskResponse]:
-    """Get all tasks for a user."""
+    """Get all tasks for a user with optional filters."""
     verify_user_access(user_id, current_user)
     service = TaskService(session)
-    tasks = service.get_tasks(user_id)
-    return [TaskResponse.model_validate(task) for task in tasks]
+    tasks = service.get_tasks(
+        user_id,
+        status=status_filter,
+        priority=priority,
+        tag=tag,
+        search=search,
+        due_before=due_before,
+        overdue=overdue,
+        sort=sort,
+        order=order,
+    )
+    return [_build_task_response(session, task) for task in tasks]
 
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
@@ -34,7 +64,7 @@ def create_task(
     verify_user_access(user_id, current_user)
     service = TaskService(session)
     task = service.create_task(user_id, data)
-    return TaskResponse.model_validate(task)
+    return _build_task_response(session, task)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -53,7 +83,7 @@ def get_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-    return TaskResponse.model_validate(task)
+    return _build_task_response(session, task)
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
@@ -73,7 +103,7 @@ def update_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-    return TaskResponse.model_validate(task)
+    return _build_task_response(session, task)
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -109,4 +139,9 @@ def toggle_complete(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found",
         )
-    return TaskResponse.model_validate(task)
+
+    # If task was completed and has recurrence rule, create next occurrence
+    if task.completed and task.recurrence_rule:
+        create_next_occurrence(session, task)
+
+    return _build_task_response(session, task)

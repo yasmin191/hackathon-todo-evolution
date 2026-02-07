@@ -2,12 +2,53 @@
 
 import { useState } from "react";
 import type { Task } from "@/types";
+import { PriorityBadge } from "./PriorityBadge";
+import { TagPill } from "./TagPill";
 
 interface TaskItemProps {
   task: Task;
   onToggleComplete: (taskId: number) => Promise<void>;
   onEdit: (task: Task) => void;
   onDelete: (taskId: number) => Promise<void>;
+}
+
+function formatDueDate(
+  dueDate: string | null,
+): { text: string; isOverdue: boolean; isToday: boolean } | null {
+  if (!dueDate) return null;
+
+  const due = new Date(dueDate);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+
+  const diffDays = Math.ceil(
+    (dueDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (diffDays < 0) {
+    return {
+      text: `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? "s" : ""}`,
+      isOverdue: true,
+      isToday: false,
+    };
+  } else if (diffDays === 0) {
+    return { text: "Due today", isOverdue: false, isToday: true };
+  } else if (diffDays === 1) {
+    return { text: "Due tomorrow", isOverdue: false, isToday: false };
+  } else if (diffDays <= 7) {
+    return {
+      text: `Due in ${diffDays} days`,
+      isOverdue: false,
+      isToday: false,
+    };
+  } else {
+    return {
+      text: `Due ${due.toLocaleDateString()}`,
+      isOverdue: false,
+      isToday: false,
+    };
+  }
 }
 
 export default function TaskItem({
@@ -39,10 +80,17 @@ export default function TaskItem({
     }
   };
 
+  const dueInfo = formatDueDate(task.due_date);
+  const isOverdue = dueInfo?.isOverdue && !task.completed;
+
   return (
     <div
       className={`p-4 bg-white rounded-lg border ${
-        task.completed ? "border-green-200 bg-green-50" : "border-gray-200"
+        task.completed
+          ? "border-green-200 bg-green-50"
+          : isOverdue
+            ? "border-red-300 bg-red-50"
+            : "border-gray-200"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -74,13 +122,61 @@ export default function TaskItem({
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3
-            className={`font-medium ${
-              task.completed ? "text-gray-500 line-through" : "text-gray-900"
-            }`}
-          >
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3
+              className={`font-medium ${
+                task.completed ? "text-gray-500 line-through" : "text-gray-900"
+              }`}
+            >
+              {task.title}
+            </h3>
+            <PriorityBadge priority={task.priority} />
+            {task.recurrence_rule && (
+              <span
+                className="inline-flex items-center text-xs text-gray-500"
+                title={`Recurs: ${task.recurrence_rule}`}
+              >
+                <svg
+                  className="w-3 h-3 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Recurring
+              </span>
+            )}
+          </div>
+
+          {/* Tags */}
+          {task.tags && task.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {task.tags.map((tag) => (
+                <TagPill key={tag.id} tag={tag} />
+              ))}
+            </div>
+          )}
+
+          {/* Due date */}
+          {dueInfo && (
+            <p
+              className={`text-xs mt-1 ${
+                isOverdue
+                  ? "text-red-600 font-medium"
+                  : dueInfo.isToday
+                    ? "text-orange-600"
+                    : "text-gray-500"
+              }`}
+            >
+              {dueInfo.text}
+            </p>
+          )}
 
           {task.description && (
             <button

@@ -3,15 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Task, TaskCreate, TaskUpdate } from "@/types";
+import type { Tag, Task, TaskCreate, TaskFilters, TaskUpdate } from "@/types";
 import { api } from "@/lib/api";
 import { getSession, logout, isAuthenticated } from "@/lib/auth";
 import TaskList from "@/components/TaskList";
 import TaskForm from "@/components/TaskForm";
+import { FilterPanel } from "@/components/FilterPanel";
 
 export default function TasksPage() {
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [filters, setFilters] = useState<TaskFilters>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -19,27 +22,42 @@ export default function TasksPage() {
   const [userEmail, setUserEmail] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
 
-  const loadTasks = useCallback(async () => {
-    const session = getSession();
-    if (!session) {
-      router.push("/login");
-      return;
-    }
+  const loadTasks = useCallback(
+    async (currentFilters?: TaskFilters) => {
+      const session = getSession();
+      if (!session) {
+        router.push("/login");
+        return;
+      }
 
-    setUserId(session.user.id);
-    setUserEmail(session.user.email);
-    setLoading(true);
-    setError(null);
+      setUserId(session.user.id);
+      setUserEmail(session.user.email);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const data = await api.getTasks(session.user.id);
-      setTasks(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load tasks");
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+      try {
+        const [tasksData, tagsData] = await Promise.all([
+          api.getTasks(session.user.id, currentFilters),
+          api.getTags(session.user.id),
+        ]);
+        setTasks(tasksData);
+        setTags(tagsData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load tasks");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router],
+  );
+
+  const handleFiltersChange = useCallback(
+    (newFilters: TaskFilters) => {
+      setFilters(newFilters);
+      loadTasks(newFilters);
+    },
+    [loadTasks],
+  );
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -149,6 +167,13 @@ export default function TasksPage() {
         </svg>
         Add Task
       </button>
+
+      {/* Filter Panel */}
+      <FilterPanel
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        tags={tags}
+      />
 
       {/* Task List */}
       <TaskList

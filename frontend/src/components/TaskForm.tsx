@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import type { Task, TaskCreate, TaskUpdate } from "@/types";
+import type { Priority, Task, TaskCreate, TaskUpdate } from "@/types";
 
 interface TaskFormProps {
   task?: Task | null;
@@ -12,6 +12,11 @@ interface TaskFormProps {
 export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
+  const [priority, setPriority] = useState<Priority>(
+    task?.priority || "medium",
+  );
+  const [dueDate, setDueDate] = useState(task?.due_date?.split("T")[0] || "");
+  const [recurrence, setRecurrence] = useState(task?.recurrence_rule || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -21,6 +26,9 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
     if (task) {
       setTitle(task.title);
       setDescription(task.description || "");
+      setPriority(task.priority || "medium");
+      setDueDate(task.due_date?.split("T")[0] || "");
+      setRecurrence(task.recurrence_rule || "");
     }
   }, [task]);
 
@@ -43,6 +51,9 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
       await onSubmit({
         title: title.trim(),
         description: description.trim() || undefined,
+        priority,
+        due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
+        recurrence_rule: recurrence || undefined,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save task");
@@ -103,6 +114,70 @@ export default function TaskForm({ task, onSubmit, onCancel }: TaskFormProps) {
               rows={3}
               disabled={loading}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="priority"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Priority
+              </label>
+              <select
+                id="priority"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                disabled={loading}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="dueDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Due Date
+              </label>
+              <input
+                type="date"
+                id="dueDate"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="recurrence"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Recurrence
+            </label>
+            <select
+              id="recurrence"
+              value={recurrence}
+              onChange={(e) => setRecurrence(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              disabled={loading}
+            >
+              <option value="">No recurrence</option>
+              <option value="DAILY">Daily</option>
+              <option value="WEEKLY:MON,TUE,WED,THU,FRI">Weekdays</option>
+              <option value="WEEKLY:SAT,SUN">Weekends</option>
+              <option value="CUSTOM:7">Weekly</option>
+              <option value="MONTHLY:1">Monthly (1st)</option>
+              <option value="MONTHLY:15">Monthly (15th)</option>
+            </select>
           </div>
 
           <div className="flex gap-3 justify-end">

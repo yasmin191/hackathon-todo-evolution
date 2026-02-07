@@ -2,20 +2,34 @@
 
 A progressive todo application built using **Spec-Driven Development (SDD)** with Claude Code and Spec-Kit Plus. This project evolves through 5 phases, each adding more complexity and features.
 
-## Current Phase: Phase III - AI-Powered Chatbot
+## Current Phase: Phase V - Advanced Cloud Deployment
 
 ### Features
 
-- **AI Chat Interface** - Manage tasks using natural language
+**Core Features**
 - User authentication (login/register)
-- Add tasks with title and optional description
-- View all tasks with completion status
+- Add, update, delete tasks
 - Mark tasks as complete/incomplete
-- Update task title and description
-- Delete tasks with confirmation
 - Persistent storage in PostgreSQL
+
+**Phase III: AI Chat Interface**
+- Manage tasks using natural language
 - Conversation history saved to database
-- Responsive web interface
+
+**Phase IV: Kubernetes Deployment**
+- Docker multi-stage builds
+- Kubernetes manifests and Helm charts
+- Minikube deployment scripts
+
+**Phase V: Advanced Features**
+- Task priorities (low, medium, high, urgent)
+- Tags for task organization
+- Due dates and reminders
+- Recurring tasks (daily, weekly, monthly)
+- Search and filter capabilities
+- Dapr integration (pub/sub, state, bindings)
+- CI/CD with GitHub Actions
+- Cloud deployment (Azure AKS)
 
 ## Technology Stack
 
@@ -26,6 +40,11 @@ A progressive todo application built using **Spec-Driven Development (SDD)** wit
 | Database | PostgreSQL (Neon Serverless) |
 | Auth | JWT tokens |
 | AI | OpenAI Agents SDK, GPT-4o-mini |
+| Containers | Docker, Kubernetes, Helm |
+| Distributed | Dapr (pub/sub, state, bindings) |
+| Event Streaming | Apache Kafka (Strimzi) |
+| CI/CD | GitHub Actions |
+| Cloud | Azure AKS / GKE / Oracle OKE |
 
 ## Project Structure
 
@@ -37,14 +56,20 @@ hackathon-todo/
 │   └── src/lib/        # Utilities
 ├── backend/            # FastAPI backend
 │   ├── src/agents/     # AI agent and tools
-│   ├── src/routers/    # API endpoints (tasks, chat)
+│   ├── src/routers/    # API endpoints (tasks, chat, tags)
+│   ├── src/services/   # Business logic
 │   └── tests/          # Pytest tests
+├── docker/             # Dockerfiles
+├── helm/               # Helm charts
+├── k8s/                # Kubernetes manifests
+│   ├── base/           # Base manifests
+│   ├── dapr/           # Dapr-enabled manifests
+│   └── cloud/          # Cloud-specific configs
+├── dapr/               # Dapr components
+├── scripts/            # Deployment scripts
+├── .github/workflows/  # CI/CD pipelines
 ├── src/                # Phase I console app
-├── specs/              # SDD specifications
-│   ├── 001-phase1-console-app/
-│   ├── 002-phase2-fullstack-web/
-│   └── 003-phase3-chatbot/
-└── docker-compose.yml  # Local development
+└── specs/              # SDD specifications
 ```
 
 ## Quick Start
@@ -113,11 +138,15 @@ docker-compose up
 The AI assistant understands natural language. Try:
 
 - "Add a task to buy groceries"
+- "Add a high priority task to review the report"
+- "Add task to call mom tomorrow"
+- "Add a daily task to take vitamins"
 - "Show me my tasks"
-- "What do I need to do?"
+- "Find tasks about meeting"
+- "Show my urgent tasks"
+- "What's overdue?"
 - "Mark task 1 as complete"
-- "Delete task 2"
-- "Rename task 3 to 'Call mom'"
+- "Tag task 5 as personal"
 
 ## Testing
 
@@ -131,15 +160,31 @@ cd frontend
 npm run build
 ```
 
+## Deployment
+
+### Local (Minikube)
+
+```bash
+# Basic Kubernetes deployment
+./scripts/deploy-minikube.sh
+
+# With Dapr integration
+./scripts/deploy-dapr.sh
+```
+
+### Cloud (Azure AKS)
+
+See [k8s/cloud/aks/README.md](k8s/cloud/aks/README.md) for detailed instructions.
+
 ## Hackathon Phases
 
 | Phase | Description | Status |
 |-------|-------------|--------|
 | I | In-Memory Console App | Completed |
 | II | Full-Stack Web Application | Completed |
-| III | AI-Powered Chatbot | In Progress |
-| IV | Kubernetes Deployment | Pending |
-| V | Cloud Deployment | Pending |
+| III | AI-Powered Chatbot | Completed |
+| IV | Kubernetes Deployment | Completed |
+| V | Cloud Deployment | Completed |
 
 ## Development Methodology
 
