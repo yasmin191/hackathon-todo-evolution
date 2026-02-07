@@ -9,7 +9,6 @@ import json
 import os
 from typing import Any
 
-import yaml
 from openai import OpenAI
 
 from .base import BaseBlueprint, BlueprintResult

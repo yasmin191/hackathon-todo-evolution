@@ -68,7 +68,7 @@ async def transcribe_audio(
     if audio.content_type and audio.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid audio format. Allowed: mp3, mp4, m4a, wav, webm, ogg",
+            detail="Invalid audio format. Allowed: mp3, mp4, m4a, wav, webm, ogg",
         )
 
     try:

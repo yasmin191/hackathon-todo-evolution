@@ -11,7 +11,7 @@ Exposes AI skills as REST endpoints for:
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 from ..agents.skills import SkillOrchestrator

@@ -193,7 +193,7 @@ Provide comprehensive infrastructure analysis as JSON."""
     def _create_report(self, analysis: dict, namespace: str) -> str:
         """Create a markdown report from the analysis."""
         lines = [
-            f"# Infrastructure Analysis Report",
+            "# Infrastructure Analysis Report",
             f"**Namespace:** {namespace}",
             f"**Health Score:** {analysis.get('health_score', 'N/A')}/100",
             "",
