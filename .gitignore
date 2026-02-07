@@ -58,3 +58,20 @@ Thumbs.db
 # Temporary
 *.tmp
 *.temp
+
+# Node.js (Frontend)
+node_modules/
+.next/
+out/
+.vercel/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+
+# Playwright
+playwright-report/
+test-results/
