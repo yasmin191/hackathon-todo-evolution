@@ -1,0 +1,88 @@
+# Default values for todo-app Helm chart
+
+# Namespace
+namespace: todo-app
+
+# Replica counts
+replicaCount:
+  frontend: 2
+  backend: 2
+
+# Frontend configuration
+frontend:
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30080
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+
+# Backend configuration
+backend:
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+  persistence:
+    enabled: true
+    size: 1Gi
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: todo.local
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+# Application configuration (non-sensitive)
+config:
+  corsOrigins: "http://localhost:3000,http://todo.local"
+  openaiModel: "gpt-4o-mini"
+
+# Secrets (override these in your deployment)
+# DO NOT commit real values to version control
+secrets:
+  # Database URL (uses internal postgres service by default)
+  databaseUrl: "postgresql://todo:todo_password@todo-postgres:5432/todo_db"
+  # Authentication secret (min 32 characters)
+  betterAuthSecret: "change-this-to-a-secure-secret-32-chars"
+  # OpenAI API key
+  openaiApiKey: ""
+  # PostgreSQL credentials
+  postgresUser: "todo"
+  postgresPassword: "todo_password"
+  postgresDb: "todo_db"
