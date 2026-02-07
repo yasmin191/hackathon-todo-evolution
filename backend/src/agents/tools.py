@@ -1,6 +1,5 @@
 """Task management tools for the AI agent."""
 
-from datetime import datetime
 from typing import Any
 
 from dateparser import parse as parse_date

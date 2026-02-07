@@ -60,7 +60,7 @@ jobs:
         run: npm ci
 
       - name: Run linting
-        run: npm run lint -- --dir src
+        run: npx next lint
 
       - name: Build
         run: npm run build
