@@ -1,0 +1,150 @@
+# Oracle Cloud OKE-specific Helm values
+# Usage: helm upgrade --install todo-app ./helm/todo-app -f values-oke.yaml
+
+global:
+  environment: production
+  cloudProvider: oracle
+
+backend:
+  replicaCount: 2
+
+  image:
+    repository: iad.ocir.io/YOUR_NAMESPACE/todo-backend
+    tag: latest
+    pullPolicy: Always
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  env:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: todo-secrets
+          key: DATABASE_URL
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: todo-secrets
+          key: OPENAI_API_KEY
+    - name: JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: todo-secrets
+          key: JWT_SECRET
+    - name: ENVIRONMENT
+      value: "production"
+
+  # Dapr sidecar configuration
+  dapr:
+    enabled: true
+    appId: todo-backend
+    appPort: 8000
+    httpPort: 3500
+    grpcPort: 50001
+
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: iad.ocir.io/YOUR_NAMESPACE/todo-frontend
+    tag: latest
+    pullPolicy: Always
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  service:
+    type: LoadBalancer
+    port: 3000
+    annotations:
+      oci.oraclecloud.com/load-balancer-type: "lb"
+      service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+      service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "100"
+
+  env:
+    - name: NEXT_PUBLIC_API_URL
+      value: "http://todo-app-backend:8000"
+    - name: NODE_ENV
+      value: "production"
+
+imagePullSecrets:
+  - name: ocir-secret
+
+# PostgreSQL configuration (using Bitnami chart as dependency)
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: todopass
+    database: tododb
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: oci-bv  # OCI Block Volume
+
+# Alternatively, use Oracle Autonomous Database
+# Set postgresql.enabled: false and configure connection string in secrets
+autonomousDatabase:
+  enabled: false
+  # Configure via OCI Console and add connection string to todo-secrets
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  hosts:
+    - paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+
+# Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Node affinity for OKE
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app: todo-app
+          topologyKey: kubernetes.io/hostname
