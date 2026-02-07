@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+data:
+  CORS_ORIGINS: {{ .Values.config.corsOrigins | quote }}
+  OPENAI_MODEL: {{ .Values.config.openaiModel | quote }}

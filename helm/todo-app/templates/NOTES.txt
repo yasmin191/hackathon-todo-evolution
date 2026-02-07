@@ -1,0 +1,28 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To get the application URL:
+
+{{- if .Values.ingress.enabled }}
+  Visit http://{{ .Values.ingress.host }} to access the Todo App
+
+  Make sure to add the following entry to your /etc/hosts file:
+    $(minikube ip) {{ .Values.ingress.host }}
+
+{{- else if eq .Values.frontend.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Values.namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "todo-app.fullname" . }}-frontend)
+  export NODE_IP=$(minikube ip)
+  echo "Frontend URL: http://$NODE_IP:$NODE_PORT"
+
+{{- else if eq .Values.frontend.service.type "ClusterIP" }}
+  kubectl port-forward --namespace {{ .Values.namespace }} svc/{{ include "todo-app.fullname" . }}-frontend 3000:{{ .Values.frontend.service.port }}
+  echo "Frontend URL: http://localhost:3000"
+{{- end }}
+
+To check the status of your deployment:
+  kubectl get pods -n {{ .Values.namespace }}
+
+To view logs:
+  kubectl logs -f deployment/{{ include "todo-app.fullname" . }}-backend -n {{ .Values.namespace }}
+  kubectl logs -f deployment/{{ include "todo-app.fullname" . }}-frontend -n {{ .Values.namespace }}
