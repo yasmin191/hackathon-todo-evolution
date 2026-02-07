@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:3000"
 
+    # OpenAI (Phase III)
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""

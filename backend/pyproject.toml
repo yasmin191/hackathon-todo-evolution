@@ -1,7 +1,7 @@
 [project]
 name = "todo-backend"
-version = "0.1.0"
-description = "Phase II - FastAPI backend for Todo application"
+version = "0.2.0"
+description = "Phase III - AI-Powered Chatbot backend for Todo application"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -13,6 +13,8 @@ dependencies = [
     "asyncpg>=0.30.0",
     "alembic>=1.14.0",
     "psycopg2-binary>=2.9.10",
+    "openai>=1.0.0",
+    "openai-agents>=0.0.3",
 ]
 
 [project.optional-dependencies]

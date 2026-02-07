@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Task, TaskCreate, TaskUpdate } from "@/types";
 import { api } from "@/lib/api";
 import { getSession, logout, isAuthenticated } from "@/lib/auth";
@@ -59,10 +60,10 @@ export default function TasksPage() {
     const updatedTask = await api.updateTask(
       userId,
       editingTask.id,
-      data as TaskUpdate
+      data as TaskUpdate,
     );
     setTasks((prev) =>
-      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
     );
     setEditingTask(null);
   };
@@ -70,7 +71,7 @@ export default function TasksPage() {
   const handleToggleComplete = async (taskId: number) => {
     const updatedTask = await api.toggleComplete(userId, taskId);
     setTasks((prev) =>
-      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
     );
   };
 
@@ -90,7 +91,7 @@ export default function TasksPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
           <p className="text-sm text-gray-500">{userEmail}</p>
@@ -101,6 +102,19 @@ export default function TasksPage() {
         >
           Logout
         </button>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-4 mb-6">
+        <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+          My Tasks
+        </span>
+        <Link
+          href="/chat"
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+        >
+          Chat Assistant
+        </Link>
       </div>
 
       {/* Stats */}

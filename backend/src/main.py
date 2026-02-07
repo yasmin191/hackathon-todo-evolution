@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import get_settings
 from src.database import create_db_and_tables
-from src.routers import tasks_router
+from src.routers import chat_router, tasks_router
 
 settings = get_settings()
 
@@ -21,8 +21,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Todo API",
-    description="Phase II - Full-Stack Todo Application Backend",
-    version="0.1.0",
+    description="Phase III - AI-Powered Chatbot Todo Application Backend",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -37,6 +37,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(tasks_router)
+app.include_router(chat_router)
 
 
 @app.get("/health")
