@@ -17,12 +17,12 @@ RUN uv sync --no-dev
 RUN useradd -m appuser
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port (7860 for Hugging Face Spaces)
+EXPOSE 7860
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')" || exit 1
 
 # Start server
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860"]

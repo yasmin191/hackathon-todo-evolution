@@ -50,21 +50,23 @@ export function getCurrentUser(): User | null {
 
 /**
  * Demo authentication for hackathon.
- * Creates a simple JWT token for testing.
+ * Calls backend to get a properly signed JWT token.
  */
 export async function demoLogin(email: string): Promise<AuthSession> {
-  // For demo purposes, create a simple user ID from email
-  const userId = `user_${email.replace(/[^a-zA-Z0-9]/g, "_")}`;
+  const response = await fetch("/auth/demo-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
 
-  // Create a demo JWT (in production, this comes from Better Auth)
-  const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const payload = btoa(JSON.stringify({ sub: userId, email }));
-  const signature = btoa("demo-signature");
-  const token = `${header}.${payload}.${signature}`;
+  if (!response.ok) {
+    throw new Error("Login failed");
+  }
 
+  const data = await response.json();
   const session: AuthSession = {
-    user: { id: userId, email },
-    token,
+    user: { id: data.user_id, email: data.email },
+    token: data.token,
   };
 
   setSession(session);

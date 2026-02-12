@@ -13,7 +13,7 @@ import type {
 } from "@/types";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 class ApiClient {
   private token: string | null = null;
